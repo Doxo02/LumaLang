@@ -1,4 +1,4 @@
-from tokenizer import TokType, Token
+from tokenizer import TokType, Token, Tokenizer
 from enum import Enum
 
 IDENT = "  "
@@ -65,7 +65,9 @@ class Binary(Expression):
         ret += IDENT * (ident_level+1)
         ret += "Right:\n"
         ret += self.rhs.to_string(ident_level+2)
-        ret += "\n)"
+        ret += "\n"
+        ret += IDENT * ident_level
+        ret += ")"
         return ret
 
 class Call(Expression):
@@ -81,6 +83,7 @@ class Call(Expression):
             for a in self.args:
                 ret += a.to_string(ident_level+1)
                 ret += ",\n"
+            ret += IDENT * ident_level
             ret += ")"
         return ret
 
@@ -133,7 +136,9 @@ class IfElse(Statement):
             ret += IDENT * (ident_level+1)
             ret += "else body:\n"
             ret += self.elseBody.to_string(ident_level+2)
-        ret += "\n)"
+        ret += "\n"
+        ret += IDENT * ident_level
+        ret += ")"
         return ret
 
 class Loop(Statement):
@@ -156,6 +161,7 @@ class Block(Statement):
         for s in self.stmts:
             ret += s.to_string(ident_level+1)
             ret += "\n"
+        ret += IDENT * ident_level
         ret += ")"
         return ret
     
@@ -227,7 +233,7 @@ class Parser:
     def expect(self, type: TokType) -> Token:
         tok = self.next()
         if tok.type != type:
-            raise ParserError(f"Expected {type.name}, got {tok.type.name}")
+            raise ParserError(f"Expected {type.name}, got {tok.to_string()}")
         return tok
     
     def accept(self, type: TokType) -> bool:
@@ -237,10 +243,11 @@ class Parser:
         return False
 
     def parse(self) -> Program: 
-        tok = self.next()
+        tok = self.peek()
         stmts: list[Statement] = []
         while tok is not None and tok.type != TokType.EOF:
             stmts.append(self._parse_statement())
+            tok = self.peek()
         return Program(stmts)
 
     def _parse_statement(self) -> Statement:
@@ -306,25 +313,122 @@ class Parser:
         body = self._parse_statement()
         return Function(id, params, body)
 
-    def _parse_expression(self) -> Expression: pass
-    def _parse_assignment(self) -> Expression: pass
-    def _parse_logic_or(self) -> Expression: pass
-    def _parse_logic_and(self) -> Expression: pass
-    def _parse_equality(self) -> Expression: pass
-    def _parse_comparison(self) -> Expression: pass
-    def _parse_term(self) -> Expression: pass
-    def _parse_factor(self) -> Expression: pass
-    def _parse_unary(self) -> Expression: pass
-    def _parse_call(self) -> Expression: pass
-    def _parse_primary(self) -> Expression: pass
+    def _parse_expression(self) -> Expression:
+        return self._parse_assignment()
 
+    def _parse_assignment(self) -> Expression:
+        if self.peek().type == TokType.IDENTIFIER and self.peek(1).type == TokType.ASSIGN:
+            id = self.expect(TokType.IDENTIFIER).val
+            self.expect(TokType.ASSIGN)
+            expr = self._parse_assignment()
+            return Assignment(id, expr)
+        return self._parse_logic_or()
 
-program="""
-let hue = 0;
+    def _parse_logic_or(self) -> Expression:
+        node = self._parse_logic_and()
+        while self.accept(TokType.LOR):
+            rhs = self._parse_logic_and()
+            node = Binary(BinOp.LOR, node, rhs)
+        return node
 
-loop {
-    fill_hsv(hue, 255, 255); // Test
-    hue = (hue + 1) % 255;
-    delay(20);
-}
-"""
+    def _parse_logic_and(self) -> Expression:
+        node = self._parse_equality()
+        while self.accept(TokType.LAND):
+            rhs = self._parse_equality()
+            node = Binary(BinOp.LAND, node, rhs)
+        return node
+    
+    def _parse_equality(self) -> Expression:
+        node = self._parse_comparison()
+        while True:
+            if self.accept(TokType.EQUALS):
+                rhs = self._parse_comparison()
+                node = Binary(BinOp.EQUALS, node, rhs)
+            elif self.accept(TokType.NEQUALS):
+                rhs = self._parse_comparison()
+                node = Binary(BinOp.NEQUALS, node, rhs)
+            else:
+                break
+        return node
+    
+    def _parse_comparison(self) -> Expression:
+        node = self._parse_term()
+        while True:
+            if self.accept(TokType.GREATER):
+                rhs = self._parse_term()
+                node = Binary(BinOp.GREATER, node, rhs)
+            elif self.accept(TokType.GEQUALS):
+                rhs = self._parse_term()
+                node = Binary(BinOp.GEQUALS, node, rhs)
+            elif self.accept(BinOp.LESS):
+                rhs = self._parse_term()
+                node = Binary(BinOp.LESS, node, rhs)
+            elif self.accept(BinOp.LEQUALS):
+                rhs = self._parse_term()
+                node = Binary(BinOp.LEQUALS, node, rhs)
+            else:
+                break
+        return node
+
+    def _parse_term(self) -> Expression:
+        node = self._parse_factor()
+        while True:
+            if self.accept(TokType.PLUS):
+                rhs = self._parse_factor()
+                node = Binary(BinOp.PLUS, node, rhs)
+            elif self.accept(TokType.MINUS):
+                rhs = self._parse_factor()
+                node = Binary(BinOp.MINUS, node, rhs)
+            else:
+                break
+        return node
+    
+    def _parse_factor(self) -> Expression:
+        node = self._parse_unary()
+        while True:
+            if self.accept(TokType.MULT):
+                rhs = self._parse_unary()
+                node = Binary(BinOp.MULT, node, rhs)
+            elif self.accept(TokType.DIV):
+                rhs = self._parse_unary()
+                node = Binary(BinOp.DIV, node, rhs)
+            elif self.accept(TokType.MOD):
+                rhs = self._parse_unary()
+                node = Binary(BinOp.MOD, node, rhs)
+            else:
+                break
+        return node
+    
+    def _parse_unary(self) -> Expression:
+        if self.accept(TokType.MINUS):
+            rhs = self._parse_unary()
+            return Binary(BinOp.MINUS, Number(0), rhs)
+        return self._parse_call()
+
+    def _parse_call(self) -> Expression:
+        if self.peek().type == TokType.IDENTIFIER and self.peek(1).type == TokType.LPAREN:
+            id = self.next().val
+            self.expect(TokType.LPAREN)
+            args: list[Expression] = []
+            if not self.accept(TokType.RPAREN):
+                args.append(self._parse_expression())
+                while self.accept(TokType.COMMA):
+                    args.append(self._parse_expression())
+                self.expect(TokType.RPAREN)
+            return Call(id, args)
+        return self._parse_primary()
+
+    def _parse_primary(self) -> Expression:
+        tok = self.next()
+
+        if tok.type == TokType.NUMBER:
+            return Number(float(tok.val))
+        elif tok.type == TokType.IDENTIFIER:
+            return Var(tok.val)
+        elif tok.type == TokType.LPAREN:
+            expr = self._parse_expression()
+            self.expect(TokType.RPAREN)
+            return expr
+        else:
+            raise ParserError(f"Unexpected token: {tok.to_string()}")
+
