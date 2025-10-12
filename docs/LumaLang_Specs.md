@@ -5,7 +5,8 @@
 ```ebnf
 program         = requirement* statement* EOF ;
 requirement     = "require" IDENTIFIER ";" ;
-statement       = exprStmt | declaration | ifStmt | loopStmt | block ;
+statement       = exprStmt | declaration | ifStmt | loopStmt | block | returnStmt ;
+returnStmt      = "return" expression ";" ;
 ifStmt          = "if" "(" expression ")" statement ("else" statement)? ;
 loopStmt        = "loop" statement ;
 block           = "{" statement* "}" ;
@@ -28,6 +29,6 @@ call            = IDENTIFIER "(" argList? ")" | primary ;
 primary         = NUMBER | IDENTIFIER | "(" expression ")" ;
 
 IDENTIFIER      = (LETTER | "_") (LETTER | DIGIT | "_")* ;
-NUMBER          = DIGIT* "." DIGIT* ;
+NUMBER          = DIGIT* ;
 ```
 
