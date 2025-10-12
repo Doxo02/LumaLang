@@ -81,10 +81,11 @@ All comparison results produce 1 for true and 0 for false in ```Rdst```
 
 ### System
 
-| Opcode         | Hex        | Encoding   | Semantics                            |
-| :------------- | :--------- | :--------- | :----------------------------------- |
-| HALT           | ```0xFF``` | ```[FF]``` | stop execution                       |
-| DBG (reserved) | ```0xFE``` | var        | debug/trap (implementation specific) |
+| Opcode         | Hex        | Encoding           | Semantics                            |
+| :------------- | :--------- | :----------------- | :----------------------------------- |
+| DELAY          | ```0xFD``` | ```[FD][Rdelay]``` | delay for ```Rdelay``` milliseconds  |
+| DBG (reserved) | ```0xFE``` | var                | debug/trap (implementation specific) |
+| HALT           | ```0xFF``` | ```[FF]```         | stop execution                       |
 
 ## Extension system
 

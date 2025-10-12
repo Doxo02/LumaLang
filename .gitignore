@@ -18,3 +18,5 @@ env/
 *.obj
 *.pdb
 *.exe
+*.lbc
+*.out

@@ -1,0 +1,14 @@
+; simple.asm
+REQ 1
+
+loop:
+    MOVI R0, 255
+    MOVI R1, 0
+    MOVI R2, 0
+    FRGB
+    SHOW
+    MOV R1, R0
+    MOV R0, R2
+    FRGB
+    SHOW
+    JMP loop
