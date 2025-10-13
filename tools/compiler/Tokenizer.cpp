@@ -178,13 +178,3 @@ std::vector<Token> Tokenizer::getTokens()
 
     return tokens;
 }
-
-int main() {
-    std::string program = "loop {\n\tfill_rgb(255, 0, 0);\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tdelay(500);\n}";
-    Tokenizer tokenizer(program);
-    std::vector<Token> tokens = tokenizer.tokenizeAll();
-    for (Token t : tokens) {
-        std::cout << tokenToString(t) << std::endl;
-    }
-    std::cout << std::endl << std::endl;
-}

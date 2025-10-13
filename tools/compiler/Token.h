@@ -41,9 +41,9 @@ struct Token {
     std::string value = "";
 };
 
-static std::string tokenToString(const Token& tok) {
+static std::string tokTypeToString(const TokType& type) {
     std::string out = "";
-    switch (tok.type) {
+    switch (type) {
         case TokType::REQUIRE: {
             out = "REQUIRE";
         } break;
@@ -138,6 +138,11 @@ static std::string tokenToString(const Token& tok) {
             out = "T_EOF";
         } break;
     }
+    return out;
+}
+
+static std::string tokenToString(const Token& tok) {
+    std::string out = tokTypeToString(tok.type);
     out.append("(");
     out.append(std::to_string(tok.line));
     out.append(":");
