@@ -44,11 +44,19 @@ bool Parser::accept(TokType type) {
 Program* Parser::parse() {
     auto tok = peek();
     std::vector<Statement*> stmts;
+    std::vector<std::string> reqs;
+    while (tok.type == TokType::REQUIRE) {
+        next();
+        reqs.push_back(expect(TokType::IDENTIFIER).value);
+        expect(TokType::SEMICOLON);
+        tok = peek();
+    }
+
     while (tok.type != TokType::T_EOF) {
         stmts.push_back(parseStatement());
         tok = peek();
     }
-    return new Program(stmts);
+    return new Program(stmts, reqs);
 }
 
 Statement* Parser::parseStatement() {
@@ -264,7 +272,7 @@ Expression* Parser::parsePrimary() {
 
 int main() {
     // Simple blinking program
-    std::string program = "loop {\n\tfill_rgb(255, 0, 0);\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tdelay(500);\n}";
+    std::string program = "require neo_pixel;\nloop {\n\tfill_rgb(255, 0, 0);\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tdelay(500);\n}";
     Parser parser(program);
     Program* prog = parser.parse();
     std::cout << prog->to_string() << std::endl;

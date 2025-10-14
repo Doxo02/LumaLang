@@ -1,7 +1,17 @@
 #ifndef LUMA_VISITOR_H
 #define LUMA_VISITOR_H
 
-#include "../Parser.h"
+class BinaryExpr;
+class Assignment;
+class CallExpr;
+class NumberExpr;
+class VarExpr;
+class ExprStatement;
+class IfElse;
+class LoopStmt;
+class BlockStmt;
+class VarDeclaration;
+class Program;
 
 class Visitor {
     public:

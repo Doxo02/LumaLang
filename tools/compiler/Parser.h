@@ -340,19 +340,33 @@ class VarDeclaration : public Statement {
 class Program : public ASTNode {
     public:
         std::vector<Statement*> stmts;
+        std::vector<std::string> reqs;
 
     public:
-        Program(std::vector<Statement*> stmts)
-            : stmts(stmts) {}
+        Program(std::vector<Statement*> stmts, std::vector<std::string> reqs)
+            : stmts(stmts), reqs(reqs) {}
 
         virtual std::string to_string(size_t identLevel = 0) override {
             std::string ret = "";
             for (int i = 0; i < identLevel; i++) ret.append(IDENT);
             ret.append("Program: {\n");
-            for (auto stmt : stmts) {
-                ret.append(stmt->to_string(identLevel+1));
+            for (int i = 0; i < identLevel+1; i++) ret.append(IDENT);
+            ret.append("Requires: [\n");
+            for (auto req : reqs) {
+                for (int i = 0; i < identLevel+2; i++) ret.append(IDENT);
+                ret.append(req);
                 ret.append(",\n");
             }
+            for (int i = 0; i < identLevel+1; i++) ret.append(IDENT);
+            ret.append("]\n");
+            for (int i = 0; i < identLevel+1; i++) ret.append(IDENT);
+            ret.append("Statements: [\n");
+            for (auto stmt : stmts) {
+                ret.append(stmt->to_string(identLevel+2));
+                ret.append(",\n");
+            }
+            for (int i = 0; i < identLevel+1; i++) ret.append(IDENT);
+            ret.append("]\n");
             for (int i = 0; i < identLevel; i++) ret.append(IDENT);
             ret.append("}");
             return ret;
