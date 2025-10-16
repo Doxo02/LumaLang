@@ -1,19 +1,6 @@
 # editor files
 .vscode/
 
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
-
-# C extensions
-*.so
-
-# envs
-env/
-.env/
-.venv/
-
 # build files
 *.obj
 *.pdb
