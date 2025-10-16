@@ -1,0 +1,1 @@
+add_executable(LumASM asm.cpp)

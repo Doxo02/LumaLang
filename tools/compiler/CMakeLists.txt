@@ -1,0 +1,1 @@
+add_executable(LumaC Tokenizer.cpp Parser.cpp visitors/CodegenVisitor.cpp)

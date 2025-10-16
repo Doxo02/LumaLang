@@ -270,10 +270,22 @@ Expression* Parser::parsePrimary() {
     }
 }
 
+#include "visitors/CodegenVisitor.h"
+
 int main() {
     // Simple blinking program
-    std::string program = "require neo_pixel;\nloop {\n\tfill_rgb(255, 0, 0);\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tdelay(500);\n}";
+    std::string program = "require neo_pixel;\nloop {\n\tfill_rgb(255, 0, 0);\n\tshow();\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tshow();\n\tdelay(500);\n}";
     Parser parser(program);
     Program* prog = parser.parse();
     std::cout << prog->to_string() << std::endl;
+
+    CodegenVisitor cgv;
+    cgv.visitProgram(prog);
+    auto code = cgv.getCode();
+
+    for (size_t i = 0; i < code.size(); i++) {
+        printf("%02X ", code[i]);
+    }
+
+    return 0;
 }

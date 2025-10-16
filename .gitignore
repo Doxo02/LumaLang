@@ -20,3 +20,5 @@ env/
 *.exe
 *.lbc
 *.out
+
+build/

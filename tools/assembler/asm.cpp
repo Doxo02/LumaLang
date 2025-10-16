@@ -68,7 +68,7 @@ public:
         head[4] = 0x01;                                                 // Version
         head[6] = (uint8_t) extensions.size();                          // ExtCount
 
-        uint16_t codeOffset = 16 + extensions.size() * 3;
+        uint16_t codeOffset = (uint16_t) (16 + extensions.size() * 3);
         head[8] = (uint8_t) (codeOffset & 0xFF);
         head[9] = (uint8_t) ((codeOffset >> 8) & 0xFF);                 // code offset
 
@@ -131,7 +131,7 @@ std::vector<uint8_t> assemble(std::istream& in) {
         if (op == "REQ") {
             std::string idStr;
             iss >> idStr;
-            uint8_t id = std::stoul(idStr);
+            uint8_t id = (uint8_t) std::stoul(idStr);
             w.require(id);
         }
         else if (op == "MOVI") {
@@ -166,7 +166,7 @@ std::vector<uint8_t> assemble(std::istream& in) {
             iss >> addrStr;
 
             int reg = parseRegister(rd);
-            uint8_t addr = std::stoul(addrStr);
+            uint8_t addr = (uint8_t) std::stoul(addrStr);
 
             w.emit(OP_LOAD);
             w.emit(reg);
@@ -179,7 +179,7 @@ std::vector<uint8_t> assemble(std::istream& in) {
             iss >> rd;
 
             int reg = parseRegister(rd);
-            uint8_t addr = std::stoul(addrStr);
+            uint8_t addr = (uint8_t) std::stoul(addrStr);
 
             w.emit(OP_STORE);
             w.emit(addr);
@@ -206,7 +206,7 @@ std::vector<uint8_t> assemble(std::istream& in) {
             iss >> idxStr;
 
             int reg = parseRegister(rd);
-            uint8_t idx = std::stoul(idxStr);
+            uint8_t idx = (uint8_t) std::stoul(idxStr);
 
             w.emit(OP_LDC);
             w.emit(reg);

@@ -45,7 +45,7 @@ class ASTNode {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) = 0;
+        virtual inline int visit(Visitor* visitor) = 0;
 };
 
 class Expression : public ASTNode {
@@ -57,7 +57,7 @@ class Expression : public ASTNode {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override = 0;
+        virtual inline int visit(Visitor* visitor) override = 0;
 };
 
 class BinaryExpr : public Expression {
@@ -85,8 +85,8 @@ class BinaryExpr : public Expression {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
-            visitor->visitBinaryExpr(this);
+        virtual inline int visit(Visitor* visitor) override {
+            return visitor->visitBinaryExpr(this);
         }
 };
 
@@ -112,8 +112,8 @@ class Assignment : public Expression {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
-            visitor->visitAssignment(this);
+        virtual inline int visit(Visitor* visitor) override {
+            return visitor->visitAssignment(this);
         }
 };
 
@@ -144,8 +144,8 @@ class CallExpr : public Expression {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
-            visitor->visitCallExpr(this);
+        virtual inline int visit(Visitor* visitor) override {
+            return visitor->visitCallExpr(this);
         }
 };
 
@@ -165,13 +165,13 @@ class NumberExpr : public Expression {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
-            visitor->visitNumberExpr(this);
+        virtual inline int visit(Visitor* visitor) override {
+            return visitor->visitNumberExpr(this);
         }
 };
 
 class VarExpr : public Expression {
-    private:
+    public:
         std::string id;
 
     public:
@@ -186,8 +186,8 @@ class VarExpr : public Expression {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
-            visitor->visitVarExpr(this);
+        virtual inline int visit(Visitor* visitor) override {
+            return visitor->visitVarExpr(this);
         }
 };
 
@@ -200,7 +200,7 @@ class Statement : public ASTNode {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override = 0;
+        virtual inline int visit(Visitor* visitor) override = 0;
 };
 
 class ExprStatement : public Statement {
@@ -219,8 +219,9 @@ class ExprStatement : public Statement {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitExprStatement(this);
+            return 0;
         }
 };
 
@@ -256,8 +257,9 @@ class IfElse : public Statement {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitIfElse(this);
+            return 0;
         }
 };
 
@@ -277,8 +279,9 @@ class LoopStmt : public Statement {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitLoopStmt(this);
+            return 0;
         }
 };
 
@@ -303,8 +306,9 @@ class BlockStmt : public Statement {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitBlockStmt(this);
+            return 0;
         }
 };
 
@@ -330,8 +334,9 @@ class VarDeclaration : public Statement {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitVarDeclaration(this);
+            return 0;
         }
 };
 
@@ -372,8 +377,9 @@ class Program : public ASTNode {
             return ret;
         }
 
-        virtual inline void visit(Visitor* visitor) override {
+        virtual inline int visit(Visitor* visitor) override {
             visitor->visitProgram(this);
+            return 0;
         }
 };
 
