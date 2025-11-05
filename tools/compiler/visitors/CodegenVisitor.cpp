@@ -1,9 +1,7 @@
 #include "CodegenVisitor.h"
 #include "../Parser.h"
-#include "../../../common/opcode.h"
-
-// TODO: remove later
-#include <iostream>
+#include <opcode.h>
+#include "../Extension.h"
 
 CodegenVisitor::CodegenVisitor() 
     : allocator() {}
@@ -28,7 +26,56 @@ void CodegenVisitor::emitDestSrc(uint8_t dest, uint8_t src) {
     uint8_t dstsrc = (dest << 4) | src;
 }
 
-int CodegenVisitor::visitBinaryExpr(BinaryExpr* expr) {
+std::vector<uint8_t> CodegenVisitor::getLBC()
+{
+    /*
+     * Header
+     */
+    std::vector<uint8_t> out;
+    // Magic Number
+    out.push_back('L');
+    out.push_back('V');
+    out.push_back('M');
+    out.push_back('1');
+    // Bytecode version
+    out.push_back(1);
+    // Flags
+    out.push_back(0);
+    // Extension count
+    out.push_back(reqIDs.size());
+    // Constants count
+    out.push_back(0);
+    // Code Offset
+    uint16_t offset = 16 + reqIDs.size() * 3;
+    out.push_back(offset & 0xFF);
+    out.push_back((offset >> 8) & 0xFF);
+    // Entry Point
+    out.push_back(0);
+    out.push_back(0);
+    // length of code
+    out.push_back(code.size() & 0xFF);
+    out.push_back((code.size() >> 8) & 0xFF);
+    out.push_back((code.size() >> 16) & 0xFF);
+    out.push_back((code.size() >> 24) & 0xFF);
+
+    /*
+     * Extensions
+     */
+    for (auto req : reqIDs) {
+        out.push_back(req);
+        out.push_back(0);
+        out.push_back(0);
+    }
+
+    /*
+     * Code
+     */
+    out.insert(out.end(), code.begin(), code.end());
+    return out;
+}
+
+int CodegenVisitor::visitBinaryExpr(BinaryExpr *expr)
+{
     int rLhs = expr->lhs->visit(this);
     int rRhs = expr->rhs->visit(this);
     emitu8(OP_MOV);
@@ -74,27 +121,37 @@ int CodegenVisitor::visitCallExpr(CallExpr *expr) {
         }
     }
 
-    if (expr->id == "set_rgb") {
-        emitu8(OP_D_SRGB);
-    } else if (expr->id == "fill_rgb") {
-        emitu8(OP_D_FRGB);
-    } else if (expr->id == "show") {
-        emitu8(OP_D_SHOW);
-    } else if (expr->id == "clear") {
-        emitu8(OP_D_CLR);
-    } else if (expr->id == "num_leds") {
-        emitu8(OP_D_NLED);
-        int reg = allocator.alloc();
-        emitu8(reg);
-        return reg;
-    } else if (expr->id == "delay") {
-        emitu8(OP_DELAY);
-        emitu8(0);
-    } else {
-        throw std::runtime_error("User functions not implemented yet!");
+    if (expr->namesp.size() > 0) {
+        auto ext = ExtensionRegistry::instance().get(expr->namesp);
+
+        ExtFunction* fn = ext->getFunction(expr->id);
+        if (fn == nullptr) {
+            throw std::runtime_error("Unknown extension function: " + expr->namesp + "." + expr->id);
+        }
+
+        if (fn->hasReturnValue) {
+            if (allocator.is_used(0)) {
+                emitu8(OP_PUSH);
+                emitu8(0);
+            } else {
+                allocator.alloc(0);
+            }
+        }
+
+        emitu8(OP_EXT);
+        emitu8(ext->getID());
+        emitu8(fn->subOp);
+        
+        return 0;
     }
 
-    return 0;
+    if (expr->id == "delay") {
+        emitu8(OP_DELAY);
+        emitu8(0);
+        return 0;
+    }
+
+    throw std::runtime_error("User functions not implemented yet!");
 }
 
 int CodegenVisitor::visitNumberExpr(NumberExpr *expr)
@@ -181,9 +238,11 @@ void CodegenVisitor::visitVarDeclaration(VarDeclaration *stmt) {
 
 void CodegenVisitor::visitProgram(Program *program) {
     for (auto req : program->reqs) {
-        if (req == "neo_pixel") {
-            reqIDs.push_back(0x01);
+        auto ext = ExtensionRegistry::instance().get(req);
+        if (ext == nullptr) {
+            throw std::runtime_error("Unknown extension: " + req);
         }
+        reqIDs.push_back(ext->getID());
     }
 
     for (auto s : program->stmts) {

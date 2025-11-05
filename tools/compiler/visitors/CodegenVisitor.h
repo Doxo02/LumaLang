@@ -22,6 +22,16 @@ class RegAllocater {
             throw std::runtime_error("Out of registers");
         }
 
+        int alloc(int r) {
+            if (used[r]) throw std::runtime_error("Reallocating register that is already used!");
+            used[r] = true;
+            return r;
+        }
+
+        bool is_used(int r) {
+            return used[r];
+        }
+
         void free(int r) {
             used[r] = false;
         }

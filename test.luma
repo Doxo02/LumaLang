@@ -1,0 +1,11 @@
+require neopixel;
+require microphone;
+
+loop {
+    neopixel.fill_rgb(microphone.read(), 0, 0);
+    neopixel.show();
+    // delay(500);
+    // neopixel.fill_rgb(0, 255, 0);
+    // neopixel.show();
+    // delay(500);
+}

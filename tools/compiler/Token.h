@@ -26,7 +26,7 @@ enum class TokType {
     COMMA, SEMICOLON,
     LPAREN, RPAREN,
     LBRACE, RBRACE,
-    ASSIGN,
+    ASSIGN, DOT,
 
     IDENTIFIER,
     NUMBER,
@@ -127,6 +127,9 @@ static std::string tokTypeToString(const TokType& type) {
         } break;
         case TokType::ASSIGN: {
             out = "ASSIGN";
+        } break;
+        case TokType::DOT: {
+            out = "DOT";
         } break;
         case TokType::IDENTIFIER: {
             out = "IDENTIFIER";

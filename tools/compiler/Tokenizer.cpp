@@ -18,7 +18,22 @@ std::vector<Token> Tokenizer::tokenizeAll()
 Token Tokenizer::nextToken()
 {
     char cur = src[index];
-    while (index < src.length() && (cur == ' ' || cur == '\t' || cur == '\n')) {
+
+    while (index < src.length() && (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || (cur == '/' && src[index+1] == '/'))) {
+        if (cur == '\n') {
+            line++;
+            col = 0;
+        } else if (cur == '/' && src[index+1] == '/') {
+            while (src[++index] != '\n');
+            line++;
+            col = 0;
+        } else {
+            col++;
+        }
+        cur = src[++index];
+    }
+
+    while (index < src.length() && (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r')) {
         if (cur == '\n') {
             line++;
             col = 0;
@@ -121,8 +136,11 @@ Token Tokenizer::nextToken()
         case '}': {
             ret = Token{TokType::RBRACE, line, col, 1};
         } break;
+        case '.': {
+            ret = Token{TokType::DOT, line, col, 1};
+        } break;
         case '!': {
-            if (src[index] == '=') {
+            if (src[index+1] == '=') {
                 index++;
                 col++;
                 ret = Token{TokType::NEQUALS, line, col, 2};
@@ -131,7 +149,7 @@ Token Tokenizer::nextToken()
             }
         } break;
         case '>': {
-            if (src[index] == '=') {
+            if (src[index+1] == '=') {
                 index++;
                 col++;
                 ret = Token{TokType::GEQUALS, line, col, 2};
@@ -140,7 +158,7 @@ Token Tokenizer::nextToken()
             }
         } break;
         case '<': {
-            if (src[index] == '=') {
+            if (src[index+1] == '=') {
                 index++;
                 col++;
                 ret = Token{TokType::LEQUALS, line, col, 2};
@@ -149,7 +167,7 @@ Token Tokenizer::nextToken()
             }
         } break;
         case '=': {
-            if (src[index] == '=') {
+            if (src[index+1] == '=') {
                 index++;
                 col++;
                 ret = Token{TokType::EQUALS, line, col, 2};
@@ -158,7 +176,7 @@ Token Tokenizer::nextToken()
             }
         } break;
         default: {
-            std::cerr << "idk" << std::endl;
+            std::cerr << "Unknown Symbol: " << cur << " @ " << line << ":" << col << std::endl;
             exit(1);
         }
     }

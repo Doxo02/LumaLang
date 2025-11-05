@@ -1,7 +1,6 @@
 #include "Parser.h"
 
 #include <stdexcept>
-#include <iostream>
 
 #include "Tokenizer.h"
 
@@ -232,13 +231,33 @@ Expression* Parser::parseCall() {
     if (peek().type == TokType::IDENTIFIER && peek(1).type == TokType::LPAREN) {
         std::string id = expect(TokType::IDENTIFIER).value;
 
-        if (id == "max") {
-
-        } else if (id == "min") {
-
-        } else if (id == "abs") {
-
+        expect(TokType::LPAREN);
+        std::vector<Expression*> args;
+        if (!accept(TokType::RPAREN)) {
+            args.push_back(parseExpression());
+            while (accept(TokType::COMMA)) {
+                args.push_back(parseExpression());
+            }
+            expect(TokType::RPAREN);
         }
+
+        if (id == "max") {
+            if (args.size() != 2) {
+                throw std::runtime_error("Max operation expects 2 arguments but got: " + std::to_string(args.size()));
+            }
+            return new BinaryExpr(BinOp::MAX, args[0], args[1]);
+        } else if (id == "min") {
+            if (args.size() != 2) {
+                throw std::runtime_error("Min operation expects 2 arguments but got: " + std::to_string(args.size()));
+            }
+            return new BinaryExpr(BinOp::MIN, args[0], args[1]);
+        }
+
+        return new CallExpr(id, args);
+    } else if (peek().type == TokType::IDENTIFIER && peek(1).type == TokType::DOT) {
+        std::string namesp = expect(TokType::IDENTIFIER).value;
+        expect(TokType::DOT);
+        std::string id = expect(TokType::IDENTIFIER).value;
 
         expect(TokType::LPAREN);
         std::vector<Expression*> args;
@@ -249,7 +268,8 @@ Expression* Parser::parseCall() {
             }
             expect(TokType::RPAREN);
         }
-        return new CallExpr(id, args);
+
+        return new CallExpr(id, args, namesp);
     }
     return parsePrimary();
 }
@@ -268,24 +288,4 @@ Expression* Parser::parsePrimary() {
     } else {
         throw std::runtime_error(std::string("Unexpected token: " + tokenToString(tok)));
     }
-}
-
-#include "visitors/CodegenVisitor.h"
-
-int main() {
-    // Simple blinking program
-    std::string program = "require neo_pixel;\nloop {\n\tfill_rgb(255, 0, 0);\n\tshow();\n\tdelay(500);\n\tfill_rgb(0, 255, 0);\n\tshow();\n\tdelay(500);\n}";
-    Parser parser(program);
-    Program* prog = parser.parse();
-    std::cout << prog->to_string() << std::endl;
-
-    CodegenVisitor cgv;
-    cgv.visitProgram(prog);
-    auto code = cgv.getCode();
-
-    for (size_t i = 0; i < code.size(); i++) {
-        printf("%02X ", code[i]);
-    }
-
-    return 0;
 }

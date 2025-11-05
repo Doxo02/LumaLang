@@ -119,17 +119,21 @@ class Assignment : public Expression {
 
 class CallExpr : public Expression {
     public:
-        std::string id;
+        std::string id, namesp;
         std::vector<Expression*> args;
 
     public:
-        CallExpr(const std::string& id, std::vector<Expression*> args)
-            : id(id), args(args) {}
+        CallExpr(const std::string& id, std::vector<Expression*> args, std::string namesp = "")
+            : id(id), args(args), namesp(namesp) {}
 
         virtual std::string to_string(size_t identLevel = 0) {
             std::string ret = "";
             for (int i = 0; i < identLevel; i++) ret.append(IDENT);
             ret.append("CallExpr (");
+            if (namesp.size() > 0) {
+                ret.append(namesp);
+                ret.append(".");
+            }
             ret.append(id);
             ret.append(")");
             if (args.size() > 0) {
