@@ -1,7 +1,11 @@
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 #include "vm.h"
 #include "../common/opcode.h"
+
+#define CLOCKS_PER_MSEC (CLOCKS_PER_SEC * 1000)
 
 /* ------------ Helper fetch functions ------------ */
 static bool vm_fetch_u8(VM* vm, uint8_t* out) {
@@ -129,6 +133,14 @@ static bool vm_load_program(VM *vm, const uint8_t *code, uint16_t code_len,
 
 void vm_step(VM* vm) {
     if (vm->halted) return;
+    // TODO: implement for your platform
+    if (vm->delaying) {
+        if ((clock() / CLOCKS_PER_MSEC) < vm->delayStart + vm->delayAmount) {
+            return;
+        }
+        vm->delaying = false;
+    }
+
     uint8_t op;
     if (!vm_fetch_u8(vm, &op)) {
         vm->err = ERR_BAD_OPCODE;
@@ -717,7 +729,9 @@ void vm_step(VM* vm) {
             if (Rdelay < REG_COUNT) {
                 vm->delaying = true;
                 vm->delayAmount = vm->regs[Rdelay];
-                vm->delayStart = 0;
+                // TODO: implement for your platform
+                // might change to a bunch of ifdefs
+                vm->delayStart = clock() / CLOCKS_PER_MSEC;
             } else {
                 vm->err = ERR_BAD_OPCODE;
                 vm->halted = true;
@@ -727,7 +741,3 @@ void vm_step(VM* vm) {
         }
     }
 }
-
-const uint8_t prog[] = {
-    OP_NOOP
-};
