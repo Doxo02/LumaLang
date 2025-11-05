@@ -22,7 +22,7 @@
 | 0x07   | 1    | ConstCount | number of constant entries                           |
 | 0x08   | 2    | CodeOffset | offset from file start to code section (uint16)      |
 | 0x0A   | 2    | EntryPoint | offset into code section to start executing (uint16) |
-| 0x0C   | 4    | Reserved   | zero for v1.0                                        |
+| 0x0C   | 4    | CodeSize   | the size of the code section in bytes (uint32)       |
 
 ### Flags (byte at 0x05)
 | Bit  | Field | Description |
